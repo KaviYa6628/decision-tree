@@ -2,6 +2,9 @@ import streamlit as st
 import pandas as pd
 import joblib
 from PIL import Image
+from sklearn.metrics import classification_report, confusion_matrix, accuracy_score
+import matplotlib.pyplot as plt
+import seaborn as sns
 
 # Load the trained model
 model = joblib.load("decision_tree_model.joblib")
@@ -15,7 +18,7 @@ st.set_page_config(
 
 # Sidebar Navigation
 st.sidebar.title("Navigation")
-section = st.sidebar.radio("Go to", ["🏠 Home", "📥 Predict", "📊 About Breast Cancer"])
+section = st.sidebar.radio("Go to", ["🏠 Home", "📥 Predict", "📊 About Breast Cancer", "📈 Model Metrics"])
 
 # ------------------ Home Page ------------------
 if section == "🏠 Home":
@@ -30,6 +33,7 @@ if section == "🏠 Home":
     Use the side navigation to:
     - Learn more about breast cancer
     - Enter test data and get predictions
+    - View model accuracy and diagnostic metrics
     """)
 
 # ------------------ About Disease Page ------------------
@@ -98,3 +102,38 @@ elif section == "📥 Predict":
                     st.table(pd.DataFrame({"Sample": range(1, len(results)+1), "Prediction": results}))
             except Exception as e:
                 st.error(f"⚠️ Error reading file: {e}")
+
+# ------------------ Model Metrics Page ------------------
+elif section == "📈 Model Metrics":
+    st.title("📈 Model Evaluation Metrics")
+    try:
+        df = pd.read_csv('data.csv')
+        df.drop(columns=['id'], inplace=True)
+        df['diagnosis'] = df['diagnosis'].map({'M': 0, 'B': 1})
+
+        X = df.drop(columns=['diagnosis'])
+        y = df['diagnosis']
+
+        from sklearn.model_selection import train_test_split
+        X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
+
+        y_pred = model.predict(X_test)
+
+        acc = accuracy_score(y_test, y_pred)
+        report = classification_report(y_test, y_pred, target_names=["Malignant", "Benign"])
+        cm = confusion_matrix(y_test, y_pred)
+
+        st.subheader(f"✅ Accuracy: {round(acc * 100, 2)}%")
+
+        st.subheader("📄 Classification Report")
+        st.code(report)
+
+        st.subheader("🔢 Confusion Matrix")
+        fig, ax = plt.subplots()
+        sns.heatmap(cm, annot=True, fmt="d", cmap="Purples", xticklabels=["Malignant", "Benign"], yticklabels=["Malignant", "Benign"])
+        plt.ylabel("Actual")
+        plt.xlabel("Predicted")
+        st.pyplot(fig)
+
+    except Exception as e:
+        st.error(f"⚠️ Could not load data or evaluate model: {e}")
