@@ -128,14 +128,6 @@ Classification Report:
 
 ---
 
-## 🙋‍♀️ Author
-
-**Kaviya Kala**  
-🎓 Rajalakshmi Institute of Technology  
-💬 AI & Cloud Enthusiast | ML Explorer | Internship Project Contributor
-
----
-
 ## 🏷️ License
 
 This project is licensed under the MIT License.
